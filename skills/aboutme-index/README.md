@@ -74,6 +74,98 @@ Instead of grep-searching or spawning Explore agents to find relevant files, thi
 
 4. Optionally add `.claude/aboutme-index.json` to `.gitignore` (it rebuilds on session start)
 
+## Bootstrapping an Existing Codebase
+
+For projects with existing code that lacks ABOUTME headers, use Claude to help add them:
+
+1. Run the check command to find files missing headers:
+   ```bash
+   python ~/.claude/skills/aboutme-index/scripts/build_index.py . --check
+   ```
+
+2. Ask Claude to add headers to the listed files:
+   ```
+   These files are missing ABOUTME headers: [paste list]
+
+   For each file, read it and add a 2-line ABOUTME comment at the top
+   describing what the file does. Use # for Python/shell/YAML or // for JS/TS.
+   ```
+
+3. Claude will read each file, understand its purpose, and add appropriate headers.
+
+4. Re-run `--check` to verify all files are covered, then rebuild the index:
+   ```bash
+   python ~/.claude/skills/aboutme-index/scripts/build_index.py . -o .claude/aboutme-index.json
+   ```
+
+## Hooks Setup
+
+The skill includes two hooks that keep the index automatically updated:
+
+### SessionStart Hook (Full Rebuild)
+
+Rebuilds the entire index when you start a Claude Code session. This catches any changes made outside of Claude (manual edits, git pulls, etc.).
+
+**Location**: `hooks/rebuild-index-on-start.sh`
+
+**Configure in** `~/.claude/settings.json`:
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "~/.claude/skills/aboutme-index/hooks/rebuild-index-on-start.sh"
+      }
+    ]
+  }
+}
+```
+
+### File Edit Hook (Incremental Update)
+
+Updates just the edited file whenever Claude modifies a file. Much faster than a full rebuild.
+
+**Location**: `hooks/update-aboutme-index.sh`
+
+**Configure in** `~/.claude/settings.json`:
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "type": "command",
+        "command": "~/.claude/skills/aboutme-index/hooks/update-aboutme-index.sh",
+        "tools": ["edit_file", "write_file"]
+      }
+    ]
+  }
+}
+```
+
+### Combined Configuration
+
+Add both hooks together:
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "~/.claude/skills/aboutme-index/hooks/rebuild-index-on-start.sh"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "type": "command",
+        "command": "~/.claude/skills/aboutme-index/hooks/update-aboutme-index.sh",
+        "tools": ["edit_file", "write_file"]
+      }
+    ]
+  }
+}
+```
+
 ## Commands
 
 | Task | Command |
