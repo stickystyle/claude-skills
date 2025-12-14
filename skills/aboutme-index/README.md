@@ -26,7 +26,16 @@ Instead of grep-searching or spawning Explore agents to find relevant files, thi
    # ABOUTME: Additional context about its purpose.
    ```
 
-2. Add to your project's `CLAUDE.md`:
+2. Add to your `CLAUDE.md` (global `~/.claude/CLAUDE.md` or project-level):
+   ```markdown
+   # Writing code
+
+   - All code files should start with a brief 2 line comment explaining what the file does. Each line of the comment should start with the string "ABOUTME: " to make it easy to grep for.
+   ```
+
+   **This makes the system self-updating** - Claude will automatically add ABOUTME headers to any new files it creates.
+
+3. Add to your project's `CLAUDE.md` to tell Claude how to use the index:
    ```markdown
    ## File Discovery
 
@@ -34,7 +43,7 @@ Instead of grep-searching or spawning Explore agents to find relevant files, thi
    read the index at `.claude/aboutme-index.json` instead of using grep or Explore.
    ```
 
-3. Optionally add `.claude/aboutme-index.json` to `.gitignore` (it rebuilds on session start)
+4. Optionally add `.claude/aboutme-index.json` to `.gitignore` (it rebuilds on session start)
 
 ## Commands
 
