@@ -17,7 +17,7 @@ import os
 import sys
 from pathlib import Path
 
-from config import should_skip_dir, extract_aboutme, save_index
+from config import should_skip_dir, extract_aboutme, locked_save_index
 
 # File extensions that should have ABOUTME headers
 ABOUTME_EXTENSIONS = {".py", ".sh", ".yml", ".yaml", ".toml", ".js", ".ts", ".jsx", ".tsx"}
@@ -158,7 +158,7 @@ def main():
     index = build_index(root_dir)
 
     if args.output:
-        save_index(index, Path(args.output))
+        locked_save_index(index, Path(args.output))
         print(f"Index written to {args.output} ({len(index)} files)")
     else:
         print(json.dumps(index, indent=2, sort_keys=True))

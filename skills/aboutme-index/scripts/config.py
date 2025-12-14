@@ -1,8 +1,10 @@
 # ABOUTME: Shared configuration and utilities for ABOUTME index scripts.
 # ABOUTME: Contains excluded directories, extraction logic, and index I/O functions.
 
+import fcntl
 import json
 import re
+from contextlib import contextmanager
 from pathlib import Path
 
 EXCLUDED_DIRS = {
@@ -69,3 +71,50 @@ def save_index(index: dict, index_path: Path) -> None:
     index_path.parent.mkdir(parents=True, exist_ok=True)
     with open(index_path, "w", encoding="utf-8") as f:
         json.dump(index, f, indent=2, sort_keys=True)
+
+
+def _get_lock_path(index_path: Path) -> Path:
+    """Return the lock file path for a given index path."""
+    return index_path.with_suffix(".lock")
+
+
+@contextmanager
+def _acquire_lock(index_path: Path):
+    """Context manager that acquires an exclusive lock on the index."""
+    index_path.parent.mkdir(parents=True, exist_ok=True)
+    lock_path = _get_lock_path(index_path)
+
+    with open(lock_path, "w") as lock_file:
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+
+
+@contextmanager
+def locked_index(index_path: Path):
+    """Context manager for atomic index updates with file locking.
+
+    Acquires an exclusive lock before reading, holds it through modification,
+    and releases after writing. Prevents race conditions when multiple
+    processes update the index concurrently.
+
+    Usage:
+        with locked_index(index_path) as index:
+            index["file.py"] = "description"
+        # Index is automatically saved on context exit
+    """
+    with _acquire_lock(index_path):
+        index = load_index(index_path)
+        yield index
+        save_index(index, index_path)
+
+
+def locked_save_index(index: dict, index_path: Path) -> None:
+    """Save index to file with exclusive locking.
+
+    Use this for full index rebuilds where read-modify-write isn't needed.
+    """
+    with _acquire_lock(index_path):
+        save_index(index, index_path)

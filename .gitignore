@@ -1,0 +1,12 @@
+# Lock files
+*.lock
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+
+# Claude Code
+.claude/aboutme-index.json

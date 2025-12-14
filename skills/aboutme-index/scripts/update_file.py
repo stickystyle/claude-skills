@@ -13,7 +13,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from config import should_skip_dir, extract_aboutme, load_index, save_index
+from config import should_skip_dir, extract_aboutme, locked_index
 
 
 def main():
@@ -62,20 +62,20 @@ def main():
     if any(should_skip_dir(part) for part in Path(rel_path).parts):
         sys.exit(0)
 
-    index = load_index(index_path)
     aboutme = extract_aboutme(file_path)
 
-    if aboutme:
-        index[rel_path] = aboutme
-        action = "updated"
-    elif rel_path in index:
-        del index[rel_path]
-        action = "removed"
-    else:
-        sys.exit(0)
+    with locked_index(index_path) as index:
+        if aboutme:
+            index[rel_path] = aboutme
+            action = "updated"
+        elif rel_path in index:
+            del index[rel_path]
+            action = "removed"
+        else:
+            action = None
 
-    save_index(index, index_path)
-    print(f"{action}: {rel_path}")
+    if action:
+        print(f"{action}: {rel_path}")
 
 
 if __name__ == "__main__":
