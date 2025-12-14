@@ -44,7 +44,7 @@ def extract_aboutme(file_path: Path) -> str | None:
             for i, line in enumerate(f):
                 if i >= 2:
                     break
-                match = re.match(r"^#\s*ABOUTME:\s*(.+)$", line.strip())
+                match = re.match(r"^(?:#|//)\s*ABOUTME:\s*(.+)$", line.strip())
                 if match:
                     aboutme_lines.append(match.group(1))
 

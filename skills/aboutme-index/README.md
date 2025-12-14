@@ -102,7 +102,11 @@ Instead of grep-searching or spawning Explore agents to find relevant files, thi
 ## Supported File Types
 
 The indexer looks for ABOUTME headers in:
-- `.py` - Python
-- `.sh` - Shell scripts
-- `.yml`, `.yaml` - YAML configs
-- `.toml` - TOML configs
+- `.py` - Python (`# ABOUTME:`)
+- `.sh` - Shell scripts (`# ABOUTME:`)
+- `.yml`, `.yaml` - YAML configs (`# ABOUTME:`)
+- `.toml` - TOML configs (`# ABOUTME:`)
+- `.js` - JavaScript (`// ABOUTME:`)
+- `.ts` - TypeScript (`// ABOUTME:`)
+- `.jsx` - React JSX (`// ABOUTME:`)
+- `.tsx` - React TSX (`// ABOUTME:`)

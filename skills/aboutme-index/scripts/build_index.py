@@ -20,7 +20,7 @@ from pathlib import Path
 from config import should_skip_dir, extract_aboutme, save_index
 
 # File extensions that should have ABOUTME headers
-ABOUTME_EXTENSIONS = {".py", ".sh", ".yml", ".yaml", ".toml"}
+ABOUTME_EXTENSIONS = {".py", ".sh", ".yml", ".yaml", ".toml", ".js", ".ts", ".jsx", ".tsx"}
 
 # Default index path
 DEFAULT_INDEX = ".claude/aboutme-index.json"
@@ -83,6 +83,8 @@ def check_staleness(root_dir: Path, index_path: Path) -> tuple[bool, str]:
 
         for filename in filenames:
             file_path = Path(dirpath) / filename
+            if file_path.suffix.lower() not in ABOUTME_EXTENSIONS:
+                continue
             try:
                 mtime = file_path.stat().st_mtime
                 if mtime > newest_mtime:
