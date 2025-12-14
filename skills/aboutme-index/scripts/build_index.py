@@ -143,9 +143,13 @@ def main():
     if args.check:
         missing = find_files_missing_aboutme(root_dir)
         if missing:
-            print(f"Files missing ABOUTME headers ({len(missing)}):\n")
+            print("These files are missing ABOUTME headers:\n")
             for path in missing:
                 print(f"  {path}")
+            print(
+                "\nFor each file, read it and add a 2-line ABOUTME comment at the top "
+                "describing what the file does. Use # for Python/shell/YAML or // for JS/TS."
+            )
             sys.exit(1)
         else:
             print("All files have ABOUTME headers.")

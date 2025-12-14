@@ -83,13 +83,7 @@ For projects with existing code that lacks ABOUTME headers, use Claude to help a
    python ~/.claude/skills/aboutme-index/scripts/build_index.py . --check
    ```
 
-2. Ask Claude to add headers to the listed files:
-   ```
-   These files are missing ABOUTME headers: [paste list]
-
-   For each file, read it and add a 2-line ABOUTME comment at the top
-   describing what the file does. Use # for Python/shell/YAML or // for JS/TS.
-   ```
+2. Copy-paste the entire output into Claude. The output is formatted as a ready-to-use prompt.
 
 3. Claude will read each file, understand its purpose, and add appropriate headers.
 
