@@ -6,6 +6,35 @@ A Claude Code skill for semantic file discovery using ABOUTME headers.
 
 Instead of grep-searching or spawning Explore agents to find relevant files, this skill maintains a JSON index of human-written file descriptions. When you ask "where is authentication handled?", Claude reads one file and instantly finds the answer.
 
+## Example
+
+```
+> which files handle authentication?
+
+⏺ Let me check the ABOUTME index for authentication-related files.
+
+⏺ Read(.claude/aboutme-index.json)
+  ⎿  Read 85 lines
+
+⏺ Authentication is handled by these files:
+
+  Core Authentication:
+  - app/src/auth.py - JWT authentication module for AWS Cognito access tokens.
+    Handles token validation, JWKS caching, and user context management
+  - app/src/context.py - GraphQL context with authenticated user and application
+    services. Provides CustomContext class for type-safe access in resolvers
+
+  Tests:
+  - app/src/tests/unit/test_auth_config.py - Cognito configuration loading from SSM
+  - app/src/tests/unit/test_auth_module.py - JWKS client factory and JWT components
+  - app/src/tests/unit/test_jwks_caching.py - JWKS key caching behavior
+  - app/src/tests/unit/test_jwt_validation.py - JWT validation FastAPI dependency
+  - app/src/tests/unit/test_context.py - CustomContext class and get_context()
+  - app/src/tests/integration/test_graphql_auth.py - GraphQL HTTP auth flow
+```
+
+**1 tool call.** Without the index, this would require an Explore agent or multiple grep searches.
+
 ## How It Works
 
 1. **Convention**: All code files start with ABOUTME comments:
