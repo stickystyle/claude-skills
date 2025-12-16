@@ -78,96 +78,34 @@ Instead of grep-searching or spawning Explore agents to find relevant files, thi
 
 For projects with existing code that lacks ABOUTME headers, use Claude to help add them:
 
-1. Run the check command to find files missing headers:
-   ```bash
-   python ~/.claude/skills/aboutme-index/scripts/build_index.py . --check
-   ```
+1. Run `/aboutme-check` to find files missing headers
 
-2. Copy-paste the entire output into Claude. The output is formatted as a ready-to-use prompt.
+2. Copy-paste the check output back to Claude. The output is formatted as a ready-to-use prompt.
 
 3. Claude will read each file, understand its purpose, and add appropriate headers.
 
-4. Re-run `--check` to verify all files are covered, then rebuild the index:
-   ```bash
-   python ~/.claude/skills/aboutme-index/scripts/build_index.py . -o .claude/aboutme-index.json
-   ```
+4. The index rebuilds automatically on session start, or run `/aboutme-rebuild`
 
-## Hooks Setup
+## Automatic Hooks
 
-The skill includes two hooks that keep the index automatically updated:
+When installed as a plugin, this skill automatically configures two hooks:
 
-### SessionStart Hook (Full Rebuild)
+- **SessionStart**: Rebuilds the entire index when you start a Claude Code session (catches external changes)
+- **PostToolUse**: Updates just the edited file when Claude modifies files (fast incremental updates)
 
-Rebuilds the entire index when you start a Claude Code session. This catches any changes made outside of Claude (manual edits, git pulls, etc.).
+No manual configuration required - the hooks are bundled with the plugin.
 
-**Location**: `hooks/rebuild-index-on-start.sh`
+## Slash Commands
 
-**Configure in** `~/.claude/settings.json`:
-```json
-{
-  "hooks": {
-    "SessionStart": [
-      {
-        "type": "command",
-        "command": "~/.claude/skills/aboutme-index/hooks/rebuild-index-on-start.sh"
-      }
-    ]
-  }
-}
-```
+The plugin provides these slash commands:
 
-### File Edit Hook (Incremental Update)
+| Command | Description |
+|---------|-------------|
+| `/aboutme-check` | Find files missing ABOUTME headers |
+| `/aboutme-rebuild` | Rebuild the entire index from scratch |
+| `/aboutme-stale` | Check for headers that may be out of date |
 
-Updates just the edited file whenever Claude modifies a file. Much faster than a full rebuild.
-
-**Location**: `hooks/update-aboutme-index.sh`
-
-**Configure in** `~/.claude/settings.json`:
-```json
-{
-  "hooks": {
-    "PostToolUse": [
-      {
-        "type": "command",
-        "command": "~/.claude/skills/aboutme-index/hooks/update-aboutme-index.sh",
-        "tools": ["edit_file", "write_file"]
-      }
-    ]
-  }
-}
-```
-
-### Combined Configuration
-
-Add both hooks together:
-```json
-{
-  "hooks": {
-    "SessionStart": [
-      {
-        "type": "command",
-        "command": "~/.claude/skills/aboutme-index/hooks/rebuild-index-on-start.sh"
-      }
-    ],
-    "PostToolUse": [
-      {
-        "type": "command",
-        "command": "~/.claude/skills/aboutme-index/hooks/update-aboutme-index.sh",
-        "tools": ["edit_file", "write_file"]
-      }
-    ]
-  }
-}
-```
-
-## Commands
-
-| Task | Command |
-|------|---------|
-| Read index | `cat .claude/aboutme-index.json` |
-| Full rebuild | `python ~/.claude/skills/aboutme-index/scripts/build_index.py . -o .claude/aboutme-index.json` |
-| Check coverage | `python ~/.claude/skills/aboutme-index/scripts/build_index.py . --check` |
-| Check staleness | `python ~/.claude/skills/aboutme-index/scripts/build_index.py . --stale` |
+You can also read the index directly: `cat .claude/aboutme-index.json`
 
 ## Index Format
 

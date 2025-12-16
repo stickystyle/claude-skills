@@ -23,12 +23,12 @@ cat .claude/aboutme-index.json | jq 'to_entries[] | select(.value | test("auth|j
 
 ## Commands
 
-| Task | Command |
-|------|---------|
-| Read index | `cat .claude/aboutme-index.json` |
-| Full rebuild | `python ~/.claude/skills/aboutme-index/scripts/build_index.py . -o .claude/aboutme-index.json` |
-| Check coverage | `python ~/.claude/skills/aboutme-index/scripts/build_index.py . --check` |
-| Check staleness | `python ~/.claude/skills/aboutme-index/scripts/build_index.py . --stale` |
+| Command | Description |
+|---------|-------------|
+| `/aboutme-check` | Find files missing ABOUTME headers |
+| `/aboutme-rebuild` | Rebuild the entire index |
+| `/aboutme-stale` | Check for stale headers |
+| `cat .claude/aboutme-index.json` | Read the index directly |
 
 ## Index Format
 

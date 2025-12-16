@@ -7,5 +7,36 @@
     "url": "https://github.com/stickystyle"
   },
   "repository": "https://github.com/stickystyle/claude-skills",
-  "license": "MIT"
+  "license": "MIT",
+  "commands": [
+    "./commands/aboutme-check.md",
+    "./commands/aboutme-rebuild.md",
+    "./commands/aboutme-stale.md"
+  ],
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/skills/aboutme-index/hooks/rebuild-index-on-start.sh",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/skills/aboutme-index/hooks/update-aboutme-index.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
 }

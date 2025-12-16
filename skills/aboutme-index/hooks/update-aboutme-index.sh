@@ -18,8 +18,10 @@ fi
 # Get the project directory
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 
-# Path to the incremental update script
-SCRIPT_PATH="$HOME/.claude/skills/aboutme-index/scripts/update_file.py"
+# Determine script directory from this script's location
+HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SKILL_DIR="$(dirname "$HOOK_DIR")"
+SCRIPT_PATH="$SKILL_DIR/scripts/update_file.py"
 
 # Run incremental update
 if [ -f "$SCRIPT_PATH" ]; then
