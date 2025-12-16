@@ -9,7 +9,7 @@
       "name": "aboutme-index",
       "source": "./skills/aboutme-index",
       "description": "Index-based file discovery using ABOUTME headers. Use INSTEAD of grep or Explore agent when searching for files by purpose or feature. Faster and more accurate than scanning code.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "author": {
         "name": "Ryan Parrish"
       },
