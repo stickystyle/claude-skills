@@ -1,18 +1,13 @@
 {
-  "name": "stickystyle-claude-skills",
-  "description": "A collection of Claude Code skills by Ryan Parrish",
-  "version": "1.0.1",
+  "name": "aboutme-index",
+  "description": "Index-based file discovery using ABOUTME headers",
+  "version": "1.0.2",
   "author": {
     "name": "Ryan Parrish",
     "url": "https://github.com/stickystyle"
   },
   "repository": "https://github.com/stickystyle/claude-skills",
   "license": "MIT",
-  "commands": [
-    "./commands/aboutme-check.md",
-    "./commands/aboutme-rebuild.md",
-    "./commands/aboutme-stale.md"
-  ],
   "hooks": {
     "SessionStart": [
       {
@@ -20,7 +15,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/skills/aboutme-index/hooks/rebuild-index-on-start.sh",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/rebuild-index-on-start.sh",
             "timeout": 30
           }
         ]
@@ -32,7 +27,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/skills/aboutme-index/hooks/update-aboutme-index.sh",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/update-aboutme-index.sh",
             "timeout": 10
           }
         ]

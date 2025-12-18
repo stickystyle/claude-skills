@@ -9,7 +9,19 @@
       "name": "aboutme-index",
       "source": "./skills/aboutme-index",
       "description": "Index-based file discovery using ABOUTME headers. Use INSTEAD of grep or Explore agent when searching for files by purpose or feature. Faster and more accurate than scanning code.",
-      "version": "1.0.1",
+      "version": "1.0.2",
+      "author": {
+        "name": "Ryan Parrish"
+      },
+      "homepage": "https://github.com/stickystyle/claude-skills",
+      "repository": "https://github.com/stickystyle/claude-skills",
+      "license": "MIT"
+    },
+    {
+      "name": "uv",
+      "source": "./skills/uv",
+      "description": "Python package manager and project tooling using uv. Use when working with Python projects, managing dependencies, creating virtual environments, running Python scripts, configuring workspaces/monorepos, or troubleshooting uv issues.",
+      "version": "1.0.0",
       "author": {
         "name": "Ryan Parrish"
       },
