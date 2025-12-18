@@ -9,7 +9,7 @@ Rebuild the complete ABOUTME index for the project. This scans all source files 
 Execute this command:
 
 ```bash
-cd "${CLAUDE_PLUGIN_ROOT}/scripts" && python build_index.py "${CLAUDE_PROJECT_DIR:-.}" -o "${CLAUDE_PROJECT_DIR:-.}/.claude/aboutme-index.json"
+cd "${CLAUDE_PLUGIN_ROOT}/scripts" && python3 build_index.py "${CLAUDE_PROJECT_DIR:-.}" -o "${CLAUDE_PROJECT_DIR:-.}/.claude/aboutme-index.json"
 ```
 
 Report the results to the user, including how many files were indexed.
