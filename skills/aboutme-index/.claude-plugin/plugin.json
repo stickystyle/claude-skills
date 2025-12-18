@@ -1,7 +1,7 @@
 {
   "name": "aboutme-index",
   "description": "Index-based file discovery using ABOUTME headers",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "author": {
     "name": "Ryan Parrish",
     "url": "https://github.com/stickystyle"
