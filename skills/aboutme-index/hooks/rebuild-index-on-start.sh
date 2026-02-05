@@ -14,13 +14,18 @@ SCRIPT_DIR="$SKILL_DIR/scripts"
 SCRIPT_PATH="$SCRIPT_DIR/build_index.py"
 
 # Output path for the index
-OUTPUT_PATH="$PROJECT_DIR/.claude/aboutme-index.json"
+OUTPUT_PATH="$PROJECT_DIR/.claude/aboutme-index.md"
+OLD_JSON_PATH="$PROJECT_DIR/.claude/aboutme-index.json"
 
 # Only rebuild if the project has an existing index or ABOUTME files
-if [ -f "$OUTPUT_PATH" ] || grep -rq "^# ABOUTME:" "$PROJECT_DIR" --include="*.py" 2>/dev/null; then
+if [ -f "$OUTPUT_PATH" ] || [ -f "$OLD_JSON_PATH" ] || grep -rq "^# ABOUTME:" "$PROJECT_DIR" --include="*.py" 2>/dev/null; then
     if [ -f "$SCRIPT_PATH" ]; then
         cd "$SCRIPT_DIR"
         python3 build_index.py "$PROJECT_DIR" -o "$OUTPUT_PATH" 2>/dev/null
+        # Clean up old JSON index if it exists
+        if [ -f "$OLD_JSON_PATH" ]; then
+            rm -f "$OLD_JSON_PATH"
+        fi
     fi
 fi
 

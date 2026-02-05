@@ -2,7 +2,6 @@
 # ABOUTME: Contains excluded directories, extraction logic, and index I/O functions.
 
 import fcntl
-import json
 import re
 from contextlib import contextmanager
 from pathlib import Path
@@ -35,6 +34,51 @@ def should_skip_dir(dir_name: str) -> bool:
     return any(dir_name.endswith(suffix) for suffix in EXCLUDED_SUFFIXES)
 
 
+def escape_backticks(path: str) -> str:
+    """Escape backticks in a path for markdown inline code."""
+    return path.replace("`", "\\`")
+
+
+def unescape_backticks(path: str) -> str:
+    """Unescape backticks in a path from markdown inline code."""
+    return path.replace("\\`", "`")
+
+
+def format_index_line(path: str, description: str) -> str:
+    """Format a single index entry as a markdown line."""
+    escaped_path = escape_backticks(path)
+    return f"- `{escaped_path}`: {description}"
+
+
+def parse_index_line(line: str) -> tuple[str, str] | None:
+    """Parse a markdown index line back to (path, description) tuple.
+
+    Returns None if the line doesn't match the expected format.
+    """
+    line = line.strip()
+    if not line.startswith("- `"):
+        return None
+
+    # Find the closing backtick, handling escaped backticks
+    i = 3  # Start after "- `"
+    while i < len(line):
+        if line[i] == "`" and (i == 0 or line[i - 1] != "\\"):
+            break
+        i += 1
+    else:
+        return None
+
+    path = unescape_backticks(line[3:i])
+
+    # Skip "`: " after the backtick
+    rest = line[i + 1 :]
+    if not rest.startswith(": "):
+        return None
+
+    description = rest[2:]
+    return (path, description)
+
+
 def extract_aboutme(file_path: Path) -> str | None:
     """Extract ABOUTME lines from the first two lines of a file."""
     if not file_path.exists():
@@ -56,21 +100,28 @@ def extract_aboutme(file_path: Path) -> str | None:
 
 
 def load_index(index_path: Path) -> dict:
-    """Load existing index or return empty dict."""
+    """Load existing index from markdown format or return empty dict."""
     if index_path.exists():
         try:
             with open(index_path, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except (json.JSONDecodeError, IOError):
+                index = {}
+                for line in f:
+                    parsed = parse_index_line(line)
+                    if parsed:
+                        path, description = parsed
+                        index[path] = description
+                return index
+        except IOError:
             return {}
     return {}
 
 
 def save_index(index: dict, index_path: Path) -> None:
-    """Save index to file."""
+    """Save index to file in markdown format."""
     index_path.parent.mkdir(parents=True, exist_ok=True)
     with open(index_path, "w", encoding="utf-8") as f:
-        json.dump(index, f, indent=2, sort_keys=True)
+        for path in sorted(index.keys()):
+            f.write(format_index_line(path, index[path]) + "\n")
 
 
 def _get_lock_path(index_path: Path) -> Path:

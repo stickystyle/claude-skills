@@ -4,7 +4,7 @@ A Claude Code skill for semantic file discovery using ABOUTME headers.
 
 ## What It Does
 
-Instead of grep-searching or spawning Explore agents to find relevant files, this skill maintains a JSON index of human-written file descriptions. When you ask "where is authentication handled?", Claude reads one file and instantly finds the answer.
+Instead of grep-searching or spawning Explore agents to find relevant files, this skill maintains a markdown index of human-written file descriptions. When you ask "where is authentication handled?", Claude reads one file and instantly finds the answer.
 
 ## Example
 
@@ -13,7 +13,7 @@ Instead of grep-searching or spawning Explore agents to find relevant files, thi
 
 ⏺ Let me check the ABOUTME index for authentication-related files.
 
-⏺ Read(.claude/aboutme-index.json)
+⏺ Read(.claude/aboutme-index.md)
   ⎿  Read 85 lines
 
 ⏺ Authentication is handled by these files:
@@ -43,7 +43,7 @@ Instead of grep-searching or spawning Explore agents to find relevant files, thi
    # ABOUTME: Handles token validation, JWKS caching, and user context.
    ```
 
-2. **Indexer**: A Python script extracts these into `.claude/aboutme-index.json`
+2. **Indexer**: A Python script extracts these into `.claude/aboutme-index.md`
 
 3. **Hooks**: The index auto-rebuilds on session start and updates incrementally on edits
 
@@ -69,10 +69,10 @@ Instead of grep-searching or spawning Explore agents to find relevant files, thi
    ## File Discovery
 
    This project has ABOUTME headers in all files. When searching for relevant files,
-   read the index at `.claude/aboutme-index.json` instead of using grep or Explore.
+   read the index at `.claude/aboutme-index.md` instead of using grep or Explore.
    ```
 
-4. Optionally add `.claude/aboutme-index.json` to `.gitignore` (it rebuilds on session start)
+4. Commit `.claude/aboutme-index.md` to git - the markdown format enables git auto-merge when multiple developers add different files
 
 ## Bootstrapping an Existing Codebase
 
@@ -105,15 +105,13 @@ The plugin provides these slash commands:
 | `/aboutme-rebuild` | Rebuild the entire index from scratch |
 | `/aboutme-stale` | Check for headers that may be out of date |
 
-You can also read the index directly: `cat .claude/aboutme-index.json`
+You can also read the index directly: `cat .claude/aboutme-index.md`
 
 ## Index Format
 
-```json
-{
-  "app/src/auth.py": "JWT authentication module for AWS Cognito access tokens...",
-  "app/src/config.py": "Centralized configuration using Pydantic settings..."
-}
+```markdown
+- `app/src/auth.py`: JWT authentication module for AWS Cognito access tokens...
+- `app/src/config.py`: Centralized configuration using Pydantic settings...
 ```
 
 ## Why This Pattern?

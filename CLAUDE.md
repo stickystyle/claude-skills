@@ -10,7 +10,7 @@ This is a Claude Code plugin repository containing reusable "skills" that extend
 
 | Task | Command |
 |------|---------|
-| Build ABOUTME index | `python skills/aboutme-index/scripts/build_index.py . -o .claude/aboutme-index.json` |
+| Build ABOUTME index | `python skills/aboutme-index/scripts/build_index.py . -o .claude/aboutme-index.md` |
 | Check missing headers | `python skills/aboutme-index/scripts/build_index.py . --check` |
 | Check index staleness | `python skills/aboutme-index/scripts/build_index.py . --stale` |
 | Update single file | `python skills/aboutme-index/scripts/update_file.py <file>` |

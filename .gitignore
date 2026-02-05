@@ -8,5 +8,5 @@ __pycache__/
 .venv/
 venv/
 
-# Claude Code
-.claude/aboutme-index.json
+# Claude Code index lock files
+.claude/*.lock

@@ -5,18 +5,18 @@ description: Index-based file discovery using ABOUTME headers. Use INSTEAD of gr
 
 # ABOUTME Index
 
-Read `.claude/aboutme-index.json` to find files by purpose instead of grep-searching.
+Read `.claude/aboutme-index.md` to find files by purpose instead of grep-searching.
 
 ## Usage
 
 1. Read the index:
 ```bash
-cat .claude/aboutme-index.json
+cat .claude/aboutme-index.md
 ```
 
-2. Filter by keyword using jq:
+2. Filter by keyword using grep:
 ```bash
-cat .claude/aboutme-index.json | jq 'to_entries[] | select(.value | test("auth|jwt"; "i"))'
+grep -i "auth\|jwt" .claude/aboutme-index.md
 ```
 
 3. Read the relevant files.
@@ -28,15 +28,13 @@ cat .claude/aboutme-index.json | jq 'to_entries[] | select(.value | test("auth|j
 | `/aboutme-check` | Find files missing ABOUTME headers |
 | `/aboutme-rebuild` | Rebuild the entire index |
 | `/aboutme-stale` | Check for stale headers |
-| `cat .claude/aboutme-index.json` | Read the index directly |
+| `cat .claude/aboutme-index.md` | Read the index directly |
 
 ## Index Format
 
-```json
-{
-  "app/src/auth.py": "JWT authentication module for AWS Cognito access tokens...",
-  "app/src/config.py": "Centralized configuration using Pydantic settings..."
-}
+```markdown
+- `app/src/auth.py`: JWT authentication module for AWS Cognito access tokens...
+- `app/src/config.py`: Centralized configuration using Pydantic settings...
 ```
 
 The index is auto-rebuilt on session start and updated incrementally on file edits.

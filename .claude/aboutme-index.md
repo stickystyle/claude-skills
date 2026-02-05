@@ -1,0 +1,5 @@
+- `skills/aboutme-index/hooks/rebuild-index-on-start.sh`: SessionStart hook to rebuild ABOUTME index on session start.
+- `skills/aboutme-index/hooks/update-aboutme-index.sh`: Hook script for incremental ABOUTME index updates.
+- `skills/aboutme-index/scripts/build_index.py`: Script to build an index of ABOUTME headers from all files.
+- `skills/aboutme-index/scripts/config.py`: Shared configuration and utilities for ABOUTME index scripts. Contains excluded directories, extraction logic, and index I/O functions.
+- `skills/aboutme-index/scripts/update_file.py`: Incremental update of ABOUTME index for a single file.

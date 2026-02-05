@@ -1,29 +1,28 @@
 #!/usr/bin/env python3
 # ABOUTME: Script to build an index of ABOUTME headers from all files.
-# ABOUTME: Outputs JSON with file paths and their descriptions for quick lookup.
+# ABOUTME: Outputs markdown with file paths and their descriptions for quick lookup.
 
 """
 Build an index of ABOUTME headers from all files in a project.
 
 Usage:
-    python build_index.py [directory] [--output index.json]
+    python build_index.py [directory] [--output index.md]
     python build_index.py [directory] --check  # List files missing ABOUTME headers
     python build_index.py [directory] --stale  # Check if index is stale
 """
 
 import argparse
-import json
 import os
 import sys
 from pathlib import Path
 
-from config import should_skip_dir, extract_aboutme, locked_save_index
+from config import should_skip_dir, extract_aboutme, locked_save_index, format_index_line
 
 # File extensions that should have ABOUTME headers
 ABOUTME_EXTENSIONS = {".py", ".sh", ".yml", ".yaml", ".toml", ".js", ".ts", ".jsx", ".tsx"}
 
 # Default index path
-DEFAULT_INDEX = ".claude/aboutme-index.json"
+DEFAULT_INDEX = ".claude/aboutme-index.md"
 
 
 def build_index(root_dir: Path) -> dict:
@@ -161,7 +160,8 @@ def main():
         locked_save_index(index, Path(args.output))
         print(f"Index written to {args.output} ({len(index)} files)")
     else:
-        print(json.dumps(index, indent=2, sort_keys=True))
+        for path in sorted(index.keys()):
+            print(format_index_line(path, index[path]))
 
 
 if __name__ == "__main__":

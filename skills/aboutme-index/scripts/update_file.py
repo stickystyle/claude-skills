@@ -6,7 +6,7 @@
 Update the ABOUTME index for a single file.
 
 Usage:
-    python update_file.py <file_path> [--index .claude/aboutme-index.json]
+    python update_file.py <file_path> [--index .claude/aboutme-index.md]
 """
 
 import argparse
@@ -24,8 +24,8 @@ def main():
     parser.add_argument(
         "--index",
         "-i",
-        default=".claude/aboutme-index.json",
-        help="Path to the index file (default: .claude/aboutme-index.json)",
+        default=".claude/aboutme-index.md",
+        help="Path to the index file (default: .claude/aboutme-index.md)",
     )
     parser.add_argument(
         "--project-dir",
