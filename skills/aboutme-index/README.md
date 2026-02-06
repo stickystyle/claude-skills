@@ -124,8 +124,10 @@ For projects with existing code that lacks ABOUTME headers, use Claude to help a
 
 When installed as a plugin, this skill automatically configures two hooks:
 
-- **SessionStart**: Rebuilds the entire two-tier index when you start a Claude Code session (catches external changes)
-- **PostToolUse**: Updates just the edited file's detail file and regenerates the directory summary if needed
+- **SessionStart**: Rebuilds the entire two-tier index when you start a Claude Code session (catches external changes). Directories with changed content get fallback summaries immediately; LLM summaries generate in the background and replace them ~30s later.
+- **PostToolUse**: Updates just the edited file's detail file. If the directory content hash changed, writes a fallback summary immediately and spawns a background process to generate the LLM summary.
+
+LLM summaries are generated asynchronously — the hook returns immediately with a fallback summary, then a detached background process calls `claude -p` to produce the final summary. This avoids the ~30s cold start blocking the hook.
 
 No manual configuration required - the hooks are bundled with the plugin.
 
@@ -147,7 +149,7 @@ You can also read the index directly:
 
 | Flag | Description |
 |------|-------------|
-| `--no-summaries` | Skip LLM summary generation; use fallback text (for CI/offline) |
+| `--no-summaries` | Skip background LLM summary generation; use fallback text only (for CI/offline) |
 | `--check` | List files missing ABOUTME headers |
 | `--stale` | Check if index is stale |
 

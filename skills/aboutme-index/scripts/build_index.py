@@ -29,7 +29,7 @@ from config import (
     save_index,
     _acquire_lock,
 )
-from summarize import generate_summary, PENDING_HASH
+from summarize import _fallback_summary, spawn_background_batch
 
 # File extensions that should have ABOUTME headers
 ABOUTME_EXTENSIONS = {".py", ".sh", ".yml", ".yaml", ".toml", ".js", ".ts", ".jsx", ".tsx"}
@@ -130,6 +130,7 @@ def build_tiered_index(root_dir: Path, output_path: Path, no_summaries: bool = F
     root_entries = {}
     dir_summaries = {}
     active_slugs = set()
+    dirs_needing_summary = []
 
     for dir_key, entries in groups.items():
         if dir_key == "":
@@ -150,20 +151,13 @@ def build_tiered_index(root_dir: Path, output_path: Path, no_summaries: bool = F
         # Check if summary needs regeneration
         existing = existing_dirs.get(dir_key)
         if existing and existing[1] == new_hash:
-            # Hash matches - keep existing summary
+            # Hash matches - keep existing (possibly LLM) summary
             dir_summaries[dir_key] = existing
         else:
-            # Need new summary
-            if no_summaries:
-                from summarize import _fallback_summary
-                summary = _fallback_summary(entries)
-                dir_summaries[dir_key] = (summary, new_hash)
-            else:
-                summary, is_llm = generate_summary(dir_key, entries)
-                if is_llm:
-                    dir_summaries[dir_key] = (summary, new_hash)
-                else:
-                    dir_summaries[dir_key] = (summary, PENDING_HASH)
+            # Hash changed or new dir - write fallback summary immediately
+            summary = _fallback_summary(entries)
+            dir_summaries[dir_key] = (summary, new_hash)
+            dirs_needing_summary.append(dir_key)
 
     # Clean up orphaned detail files
     for existing_file in detail_dir.iterdir():
@@ -173,6 +167,10 @@ def build_tiered_index(root_dir: Path, output_path: Path, no_summaries: bool = F
     # Write top-level index (locked)
     with _acquire_lock(output_path):
         save_top_index(root_entries, dir_summaries, output_path)
+
+    # Spawn background process to generate LLM summaries
+    if not no_summaries and dirs_needing_summary:
+        spawn_background_batch(dirs_needing_summary, root_dir)
 
 
 def main():

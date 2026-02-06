@@ -25,7 +25,7 @@ from config import (
     save_top_index,
     _acquire_lock,
 )
-from summarize import generate_summary, PENDING_HASH
+from summarize import _fallback_summary, spawn_background_summary
 
 
 def _parent_dir_key(rel_path: str) -> str:
@@ -131,6 +131,7 @@ def main():
             sys.exit(0)
 
         # Now lock top-level and update summary
+        needs_llm_summary = False
         with _acquire_lock(index_path):
             root_entries, dir_summaries = load_top_index(index_path)
 
@@ -144,14 +145,16 @@ def main():
 
                 existing = dir_summaries.get(dir_key)
                 if not existing or existing[1] != new_hash:
-                    # Hash changed - regenerate summary
-                    summary, is_llm = generate_summary(dir_key, detail_index)
-                    if is_llm:
-                        dir_summaries[dir_key] = (summary, new_hash)
-                    else:
-                        dir_summaries[dir_key] = (summary, PENDING_HASH)
+                    # Hash changed - write fallback summary immediately
+                    summary = _fallback_summary(detail_index)
+                    dir_summaries[dir_key] = (summary, new_hash)
+                    needs_llm_summary = True
 
             save_top_index(root_entries, dir_summaries, index_path)
+
+        # Spawn background LLM summary generation (outside the lock)
+        if needs_llm_summary:
+            spawn_background_summary(dir_key, project_dir, detail_path)
 
     if action:
         print(f"{action}: {rel_path}")

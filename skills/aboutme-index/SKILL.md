@@ -1,25 +1,30 @@
 ---
 name: aboutme-index
+model: haiku
 description: Index-based file discovery using ABOUTME headers. Use INSTEAD of grep or Explore agent when searching for files by purpose or feature. Faster and more accurate than scanning code. Invoke this skill when user asks "which files handle X", "where is Y implemented", or when you need to find files related to a feature or task.
 ---
 
 # ABOUTME Index
 
-Read `.claude/aboutme-index.md` to find files by purpose instead of grep-searching.
+This is a read-only lookup skill. Use the Read tool to find files by purpose.
 
 ## Usage
 
-1. Read the directory overview:
-```bash
-cat .claude/aboutme-index.md
-```
+1. Read the top-level directory overview:
+   - Read `.claude/aboutme-index.md`
 
-2. Find the relevant directory, then read its detail file:
-```bash
-cat .claude/aboutme-index/services--tracking.md
-```
+2. Find the relevant directory, convert its slug (`/` becomes `--`), and read the detail file:
+   - `services/tracking/` -> Read `.claude/aboutme-index/services--tracking.md`
+   - `db/` -> Read `.claude/aboutme-index/db.md`
 
 3. Read the specific source files you need.
+
+## Slug Conversion
+
+Directory paths map to detail filenames by replacing `/` with `--`:
+- `services/tracking/` -> `services--tracking.md`
+- `db/migrations/versions/` -> `db--migrations--versions.md`
+- `db/` -> `db.md`
 
 ## Commands
 
@@ -28,8 +33,6 @@ cat .claude/aboutme-index/services--tracking.md
 | `/aboutme-check` | Find files missing ABOUTME headers |
 | `/aboutme-rebuild` | Rebuild the entire index |
 | `/aboutme-stale` | Check for stale headers |
-| `cat .claude/aboutme-index.md` | Read the top-level directory overview |
-| `cat .claude/aboutme-index/<slug>.md` | Read detail file for a specific directory |
 
 ## Index Format
 
@@ -43,6 +46,8 @@ cat .claude/aboutme-index/services--tracking.md
 - `services/tracking/`: Shipment tracking with registration, polling, webhooks <!-- hash:e5f6a1b2c3d4e5f6 -->
 ```
 
+Root files (no trailing `/`) appear inline. Directories (trailing `/`) have summaries. Ignore `<!-- hash:... -->` comments.
+
 ### Detail files (per-file entries)
 
 ```markdown
@@ -50,6 +55,4 @@ cat .claude/aboutme-index/services--tracking.md
 - `services/tracking/service.py`: Business logic for shipment tracking
 ```
 
-Directory slugs use `--` as separator: `services/tracking/` -> `services--tracking.md`
-
-The index is auto-rebuilt on session start and updated incrementally on file edits.
+The index auto-rebuilds on session start and updates incrementally on file edits.
