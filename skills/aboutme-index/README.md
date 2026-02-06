@@ -4,7 +4,7 @@ A Claude Code skill for semantic file discovery using ABOUTME headers.
 
 ## What It Does
 
-Instead of grep-searching or spawning Explore agents to find relevant files, this skill maintains a markdown index of human-written file descriptions. When you ask "where is authentication handled?", Claude reads one file and instantly finds the answer.
+Instead of grep-searching or spawning Explore agents to find relevant files, this skill maintains a two-tier markdown index of human-written file descriptions. The top-level index contains LLM-generated directory summaries (~20-40 lines). When Claude needs file-level detail, it reads only the relevant directory's detail file.
 
 ## Example
 
@@ -14,7 +14,10 @@ Instead of grep-searching or spawning Explore agents to find relevant files, thi
 ⏺ Let me check the ABOUTME index for authentication-related files.
 
 ⏺ Read(.claude/aboutme-index.md)
-  ⎿  Read 85 lines
+  ⎿  Read 15 lines (directory summaries)
+
+⏺ Read(.claude/aboutme-index/app--src.md)
+  ⎿  Read 12 lines (file-level detail)
 
 ⏺ Authentication is handled by these files:
 
@@ -23,17 +26,43 @@ Instead of grep-searching or spawning Explore agents to find relevant files, thi
     Handles token validation, JWKS caching, and user context management
   - app/src/context.py - GraphQL context with authenticated user and application
     services. Provides CustomContext class for type-safe access in resolvers
-
-  Tests:
-  - app/src/tests/unit/test_auth_config.py - Cognito configuration loading from SSM
-  - app/src/tests/unit/test_auth_module.py - JWKS client factory and JWT components
-  - app/src/tests/unit/test_jwks_caching.py - JWKS key caching behavior
-  - app/src/tests/unit/test_jwt_validation.py - JWT validation FastAPI dependency
-  - app/src/tests/unit/test_context.py - CustomContext class and get_context()
-  - app/src/tests/integration/test_graphql_auth.py - GraphQL HTTP auth flow
 ```
 
-**1 tool call.** Without the index, this would require an Explore agent or multiple grep searches.
+**2 targeted reads.** The top-level summary points Claude to the right directory without reading every file entry.
+
+## Index Structure
+
+```
+.claude/
+  aboutme-index.md              # Top-level: directory summaries + root file entries
+  aboutme-index/                # Detail directory
+    db.md                       # Detail for db/
+    db--migrations--versions.md # Detail for db/migrations/versions/
+    services--tracking.md       # Detail for services/tracking/
+    libs--common.md             # Detail for libs/common/
+```
+
+### Top-level index format
+
+```markdown
+<!-- ABOUTME Index: directory summaries. For file-level detail, read .claude/aboutme-index/<slug>.md -->
+- `celery_app.py`: Celery application entry point Configures task queues and worker settings
+- `main.py`: FastAPI application entry point Mounts domain routers and configures middleware
+- `db/`: SQLAlchemy models, async sessions, enums, and Alembic migrations <!-- hash:a1b2c3d4e5f6a1b2 -->
+- `services/tracking/`: Shipment tracking with registration, polling, webhooks <!-- hash:e5f6a1b2c3d4e5f6 -->
+```
+
+Root-level files appear inline. Directories get LLM-generated summaries with content hashes for cache invalidation.
+
+### Detail file format
+
+```markdown
+- `services/tracking/api.py`: FastAPI router for tracking/shipment endpoints
+- `services/tracking/service.py`: Business logic for shipment tracking
+- `services/tracking/repository.py`: Database access layer for shipment tracking
+```
+
+Directory slugs use `--` as separator: `services/tracking/` -> `services--tracking.md`
 
 ## How It Works
 
@@ -43,9 +72,13 @@ Instead of grep-searching or spawning Explore agents to find relevant files, thi
    # ABOUTME: Handles token validation, JWKS caching, and user context.
    ```
 
-2. **Indexer**: A Python script extracts these into `.claude/aboutme-index.md`
+2. **Indexer**: A Python script extracts these into a two-tier index:
+   - Top-level with LLM-generated directory summaries
+   - Per-directory detail files with individual file entries
 
 3. **Hooks**: The index auto-rebuilds on session start and updates incrementally on edits
+
+4. **Caching**: Content hashes prevent unnecessary LLM calls when detail files haven't changed
 
 ## Setup Your Project
 
@@ -70,9 +103,10 @@ Instead of grep-searching or spawning Explore agents to find relevant files, thi
 
    This project has ABOUTME headers in all files. When searching for relevant files,
    read the index at `.claude/aboutme-index.md` instead of using grep or Explore.
+   For file-level detail, read `.claude/aboutme-index/<slug>.md`.
    ```
 
-4. Commit `.claude/aboutme-index.md` to git - the markdown format enables git auto-merge when multiple developers add different files
+4. Commit `.claude/aboutme-index.md` and `.claude/aboutme-index/` to git
 
 ## Bootstrapping an Existing Codebase
 
@@ -90,8 +124,8 @@ For projects with existing code that lacks ABOUTME headers, use Claude to help a
 
 When installed as a plugin, this skill automatically configures two hooks:
 
-- **SessionStart**: Rebuilds the entire index when you start a Claude Code session (catches external changes)
-- **PostToolUse**: Updates just the edited file when Claude modifies files (fast incremental updates)
+- **SessionStart**: Rebuilds the entire two-tier index when you start a Claude Code session (catches external changes)
+- **PostToolUse**: Updates just the edited file's detail file and regenerates the directory summary if needed
 
 No manual configuration required - the hooks are bundled with the plugin.
 
@@ -105,21 +139,26 @@ The plugin provides these slash commands:
 | `/aboutme-rebuild` | Rebuild the entire index from scratch |
 | `/aboutme-stale` | Check for headers that may be out of date |
 
-You can also read the index directly: `cat .claude/aboutme-index.md`
+You can also read the index directly:
+- `cat .claude/aboutme-index.md` — top-level directory overview
+- `cat .claude/aboutme-index/<slug>.md` — detail for a specific directory
 
-## Index Format
+## Build Options
 
-```markdown
-- `app/src/auth.py`: JWT authentication module for AWS Cognito access tokens...
-- `app/src/config.py`: Centralized configuration using Pydantic settings...
-```
+| Flag | Description |
+|------|-------------|
+| `--no-summaries` | Skip LLM summary generation; use fallback text (for CI/offline) |
+| `--check` | List files missing ABOUTME headers |
+| `--stale` | Check if index is stale |
 
 ## Why This Pattern?
 
-- **Speed**: 1 file read vs. multiple grep/glob operations
+- **Speed**: 1-2 file reads vs. multiple grep/glob operations
+- **Scalable**: Top-level stays small (~20-40 lines) regardless of project size
 - **Accuracy**: Human-curated descriptions beat pattern matching
 - **Semantic**: Natural language queries match natural language descriptions
 - **Low overhead**: 2-line comments per file, auto-maintained index
+- **Cached**: LLM summaries only regenerate when directory contents change
 
 ## Supported File Types
 

@@ -9,17 +9,17 @@ Read `.claude/aboutme-index.md` to find files by purpose instead of grep-searchi
 
 ## Usage
 
-1. Read the index:
+1. Read the directory overview:
 ```bash
 cat .claude/aboutme-index.md
 ```
 
-2. Filter by keyword using grep:
+2. Find the relevant directory, then read its detail file:
 ```bash
-grep -i "auth\|jwt" .claude/aboutme-index.md
+cat .claude/aboutme-index/services--tracking.md
 ```
 
-3. Read the relevant files.
+3. Read the specific source files you need.
 
 ## Commands
 
@@ -28,13 +28,28 @@ grep -i "auth\|jwt" .claude/aboutme-index.md
 | `/aboutme-check` | Find files missing ABOUTME headers |
 | `/aboutme-rebuild` | Rebuild the entire index |
 | `/aboutme-stale` | Check for stale headers |
-| `cat .claude/aboutme-index.md` | Read the index directly |
+| `cat .claude/aboutme-index.md` | Read the top-level directory overview |
+| `cat .claude/aboutme-index/<slug>.md` | Read detail file for a specific directory |
 
 ## Index Format
 
+### Top-level index (directory summaries)
+
 ```markdown
-- `app/src/auth.py`: JWT authentication module for AWS Cognito access tokens...
-- `app/src/config.py`: Centralized configuration using Pydantic settings...
+<!-- ABOUTME Index: directory summaries. For file-level detail, read .claude/aboutme-index/<slug>.md -->
+- `celery_app.py`: Celery application entry point Configures task queues and worker settings
+- `main.py`: FastAPI application entry point Mounts domain routers and configures middleware
+- `db/`: SQLAlchemy models, async sessions, enums, and Alembic migrations <!-- hash:a1b2c3d4e5f6a1b2 -->
+- `services/tracking/`: Shipment tracking with registration, polling, webhooks <!-- hash:e5f6a1b2c3d4e5f6 -->
 ```
+
+### Detail files (per-file entries)
+
+```markdown
+- `services/tracking/api.py`: FastAPI router for tracking/shipment endpoints
+- `services/tracking/service.py`: Business logic for shipment tracking
+```
+
+Directory slugs use `--` as separator: `services/tracking/` -> `services--tracking.md`
 
 The index is auto-rebuilt on session start and updated incrementally on file edits.

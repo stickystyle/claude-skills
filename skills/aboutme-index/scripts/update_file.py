@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # ABOUTME: Incremental update of ABOUTME index for a single file.
-# ABOUTME: Fast alternative to full rebuild - updates only the specified file.
+# ABOUTME: Updates the two-tier index: detail file first, then top-level summary.
 
 """
 Update the ABOUTME index for a single file.
@@ -13,7 +13,30 @@ import argparse
 import sys
 from pathlib import Path
 
-from config import should_skip_dir, extract_aboutme, locked_index
+from config import (
+    should_skip_dir,
+    extract_aboutme,
+    load_index,
+    save_index,
+    content_hash,
+    dir_slug,
+    detail_dir_path,
+    load_top_index,
+    save_top_index,
+    _acquire_lock,
+)
+from summarize import generate_summary, PENDING_HASH
+
+
+def _parent_dir_key(rel_path: str) -> str:
+    """Get the parent directory key for a file path.
+
+    Returns "" for root-level files, or the parent directory path.
+    """
+    parts = Path(rel_path).parts
+    if len(parts) <= 1:
+        return ""
+    return str(Path(*parts[:-1]))
 
 
 def main():
@@ -63,16 +86,72 @@ def main():
         sys.exit(0)
 
     aboutme = extract_aboutme(file_path)
+    dir_key = _parent_dir_key(rel_path)
 
-    with locked_index(index_path) as index:
-        if aboutme:
-            index[rel_path] = aboutme
-            action = "updated"
-        elif rel_path in index:
-            del index[rel_path]
-            action = "removed"
-        else:
-            action = None
+    if dir_key == "":
+        # Root file: update inline in top-level index
+        with _acquire_lock(index_path):
+            root_entries, dir_summaries = load_top_index(index_path)
+            if aboutme:
+                root_entries[rel_path] = aboutme
+                action = "updated"
+            elif rel_path in root_entries:
+                del root_entries[rel_path]
+                action = "removed"
+            else:
+                action = None
+            if action:
+                save_top_index(root_entries, dir_summaries, index_path)
+    else:
+        # Subdir file: update detail file first, then top-level
+        detail_dir = detail_dir_path(project_dir)
+        detail_dir.mkdir(parents=True, exist_ok=True)
+        slug = dir_slug(dir_key)
+        detail_path = detail_dir / f"{slug}.md"
+
+        # Lock detail file, update entry
+        with _acquire_lock(detail_path):
+            detail_index = load_index(detail_path)
+            if aboutme:
+                detail_index[rel_path] = aboutme
+                action = "updated"
+            elif rel_path in detail_index:
+                del detail_index[rel_path]
+                action = "removed"
+            else:
+                action = None
+
+            if action:
+                if detail_index:
+                    save_index(detail_index, detail_path)
+                elif detail_path.exists():
+                    detail_path.unlink()
+
+        if not action:
+            sys.exit(0)
+
+        # Now lock top-level and update summary
+        with _acquire_lock(index_path):
+            root_entries, dir_summaries = load_top_index(index_path)
+
+            if not detail_index:
+                # Directory is now empty - remove from top-level
+                dir_summaries.pop(dir_key, None)
+            else:
+                # Compute new hash
+                detail_content = detail_path.read_text(encoding="utf-8")
+                new_hash = content_hash(detail_content)
+
+                existing = dir_summaries.get(dir_key)
+                if not existing or existing[1] != new_hash:
+                    # Hash changed - regenerate summary
+                    summary, is_llm = generate_summary(dir_key, detail_index)
+                    if is_llm:
+                        dir_summaries[dir_key] = (summary, new_hash)
+                    else:
+                        dir_summaries[dir_key] = (summary, PENDING_HASH)
+
+            save_top_index(root_entries, dir_summaries, index_path)
 
     if action:
         print(f"{action}: {rel_path}")
