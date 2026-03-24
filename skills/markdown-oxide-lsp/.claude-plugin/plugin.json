@@ -8,5 +8,15 @@
   },
   "repository": "https://github.com/stickystyle/claude-skills",
   "license": "MIT",
-  "lspServers": "../.lsp.json"
+  "lspServers": {
+    "markdown": {
+      "command": "markdown-oxide",
+      "args": [],
+      "extensionToLanguage": {
+        ".md": "markdown"
+      },
+      "restartOnCrash": true,
+      "maxRestarts": 3
+    }
+  }
 }
