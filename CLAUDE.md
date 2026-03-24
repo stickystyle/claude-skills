@@ -88,6 +88,10 @@ Hooks use `${CLAUDE_PLUGIN_ROOT}` which resolves to the skill's root directory:
 
 6. Register in root `.claude-plugin/marketplace.json` under `plugins` array
 
+## Keeping README.md Up to Date
+
+When adding, removing, or renaming a skill, update the "Available Skills" section in `README.md` to match. Each skill should have a subsection with a brief description. Use `marketplace.json` as the source of truth for the current skill list.
+
 ## ABOUTME Convention
 
 All code files use ABOUTME headers (first 2 lines) for semantic indexing:
