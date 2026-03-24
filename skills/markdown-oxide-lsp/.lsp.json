@@ -1,0 +1,11 @@
+{
+  "markdown": {
+    "command": "markdown-oxide",
+    "args": [],
+    "extensionToLanguage": {
+      ".md": "markdown"
+    },
+    "restartOnCrash": true,
+    "maxRestarts": 3
+  }
+}
