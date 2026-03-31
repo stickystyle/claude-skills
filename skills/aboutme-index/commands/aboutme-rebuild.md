@@ -1,5 +1,5 @@
 ---
-description: Rebuild the ABOUTME index from scratch
+description: Rebuild the ABOUTME index with LLM-generated directory summaries
 ---
 
 # Rebuild ABOUTME Index
@@ -12,4 +12,4 @@ Execute this command:
 cd "${CLAUDE_PLUGIN_ROOT}/scripts" && python3 build_index.py "${CLAUDE_PROJECT_DIR:-.}" -o "${CLAUDE_PROJECT_DIR:-.}/.claude/aboutme-index.md"
 ```
 
-Report the results to the user, including how many files were indexed.
+Report the results to the user, including how many files were indexed. If directories need LLM summaries, they are being generated in the background and will appear shortly. Read `.claude/aboutme-index.md` after ~30 seconds to see the final summaries.

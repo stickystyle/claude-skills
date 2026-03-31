@@ -20,6 +20,8 @@ OLD_JSON_PATH="$PROJECT_DIR/.claude/aboutme-index.json"
 # Only rebuild if the project has an existing index or ABOUTME files
 if [ -f "$OUTPUT_PATH" ] || [ -f "$OLD_JSON_PATH" ] || grep -rq "^# ABOUTME:" "$PROJECT_DIR" --include="*.py" 2>/dev/null; then
     if [ -f "$SCRIPT_PATH" ]; then
+        # Ensure detail directory exists for two-tier index
+        mkdir -p "$PROJECT_DIR/.claude/aboutme-index"
         cd "$SCRIPT_DIR"
         python3 build_index.py "$PROJECT_DIR" -o "$OUTPUT_PATH" 2>/dev/null
         # Clean up old JSON index if it exists
